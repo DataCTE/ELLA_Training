@@ -131,8 +131,8 @@ def validate(ella, dataloader):
 
 if __name__ == "__main__":
     train_ella(
-        dataset_path="/mnt/pool/training/datasets/mj",
-        ella_path="/mnt/pool/inference/ComfyUI/models/ella/ella-sd1.5-tsc-t5xl.safetensors",
+        dataset_path="path to your folder",
+        ella_path="path to your folder",
         sd_path="runwayml/stable-diffusion-v1-5",
-        t5_path="/mnt/pool/inference/ComfyUI/models/t5_model/flan-t5-xl"
+        t5_path="path to your folder"
     )
