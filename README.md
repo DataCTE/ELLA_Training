@@ -5,7 +5,7 @@ This project is a result of our efforts to reverse engineer the ELLA training pr
 
 Background:
 
-We were disappointed to learn that the original creators of ELLA did not release the training code for version SDXL. However, instead of waiting for an official release, we decided to take matters into our own hands and reverse engineer the training process ourselves.
+We were disappointed to learn that the original creators of ELLA did not release the training code for version 1.5 or SDXL. However, instead of waiting for an official release, we decided to take matters into our own hands and reverse engineer the training process ourselves.
 
 Project Structure
 The repository contains the following files and directories:
