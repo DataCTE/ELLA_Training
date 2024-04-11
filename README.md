@@ -3,7 +3,8 @@
 Introduction
 This project is a result of our efforts to reverse engineer the ELLA training process for version 1.5. We have successfully created a fine-tuned model based on the ELLA architecture. Our goal is to adapt the training script to work with SDXL (Stable Diffusion XL) and make it accessible to the community.
 
-Background
+Background:
+
 We were disappointed to learn that the original creators of ELLA did not release the training code for version 1.5. However, instead of waiting for an official release, we decided to take matters into our own hands and reverse engineer the training process ourselves.
 
 Project Structure
