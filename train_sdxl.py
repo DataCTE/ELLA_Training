@@ -113,7 +113,7 @@ def train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path, epochs=
             timesteps = torch.randint(0, sdxl_model.scheduler.config.num_train_timesteps, (images.shape[0],), device=images.device).long()
             
             with torch.no_grad():
-                latents = sdxl_model.vae.encode(images).latent_dist.sample()
+                latents = sdxl_model.vae.encode(images.half()).latent_dist.sample()
                 latents = latents * 0.18215
                 noise = torch.randn_like(latents)
                 noised_latents = sdxl_model.scheduler.add_noise(latents, noise, timesteps)
@@ -133,10 +133,10 @@ def train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path, epochs=
     torch.save(tsc.state_dict(), save_path)
      
 if __name__ == "__main__":
-    dataset_path = "path to your dataset"
+    dataset_path = "/mnt/pool/training/datasets/"
     tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-xl")
     llm_model = T5EncoderModel.from_pretrained("google/flan-t5-xl").to("cuda")
-    sdxl_path = "path to diffusers format SDXL"
+    sdxl_path = "/mnt/pool/models/ProteusMobius_diffusers"
     save_path = "./tsc.pth"
     
     train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path)
