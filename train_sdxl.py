@@ -6,48 +6,7 @@ from torchvision import transforms
 import os
 from tqdm import tqdm
 from PIL import Image
-
-class TSC(torch.nn.Module):
-    def __init__(self, config):
-        super().__init__()
-        self.embed_dim = config.hidden_size
-        self.num_heads = config.num_attention_heads
-        self.num_latents = 64
-        self.latent_dim = 4 * self.embed_dim
-        
-        self.latents = torch.nn.Parameter(torch.randn(self.num_latents, self.latent_dim))
-        self.time_mlp = torch.nn.Sequential(
-            torch.nn.SiLU(),
-            torch.nn.Linear(self.embed_dim, self.latent_dim)
-        )
-        
-        self.to_q = torch.nn.Linear(self.latent_dim, self.embed_dim)
-        self.to_k = torch.nn.Linear(self.latent_dim, self.embed_dim)
-        self.to_v = torch.nn.Linear(self.latent_dim, self.embed_dim)
-        
-        self.attention = torch.nn.MultiheadAttention(self.embed_dim, num_heads=self.num_heads, batch_first=True)
-        self.layernorm = torch.nn.LayerNorm(self.embed_dim)
-        self.ff = torch.nn.Sequential(
-            torch.nn.Linear(self.embed_dim, self.embed_dim * 4),
-            torch.nn.GELU(),
-            torch.nn.Linear(self.embed_dim * 4, self.embed_dim)
-        )
-    
-    def forward(self, x, t):
-        t = self.time_mlp(t).unsqueeze(1)
-        
-        latents = self.latents.unsqueeze(0).expand(x.shape[0], -1, -1)
-        latents = latents + t
-        
-        q = self.to_q(latents)
-        k = self.to_k(torch.cat([latents, x], dim=1))
-        v = self.to_v(torch.cat([latents, x], dim=1))
-        
-        attn_output, _ = self.attention(q, k, v, need_weights=False)
-        attn_output = self.layernorm(attn_output)
-        attn_output = attn_output + self.ff(attn_output)
-        
-        return attn_output
+from model import TSC
 
 # Define the dataset
 class ImageCaptionDataset(torch.utils.data.Dataset):
@@ -86,7 +45,6 @@ class ImageCaptionDataset(torch.utils.data.Dataset):
         
         return image, text_input_ids, attention_mask
 
-# Training function
 def train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path, epochs=10, batch_size=4, lr=1e-5):
     dataset = ImageCaptionDataset(dataset_path, tokenizer)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -98,6 +56,7 @@ def train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path, epochs=
     tsc = TSC(llm_model.config).to("cuda")
     
     optimizer = torch.optim.AdamW(tsc.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(dataloader)*epochs)
     
     for epoch in range(epochs):
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs}")
@@ -127,13 +86,14 @@ def train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path, epochs=
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            scheduler.step()
             
             progress_bar.set_postfix({"Loss": loss.item()})
 
     torch.save(tsc.state_dict(), save_path)
      
 if __name__ == "__main__":
-    dataset_path = "/mnt/pool/training/datasets/"
+    dataset_path = "/mnt/pool/training/datasets/mj"
     tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-xl")
     llm_model = T5EncoderModel.from_pretrained("google/flan-t5-xl").to("cuda")
     sdxl_path = "/mnt/pool/models/ProteusMobius_diffusers"

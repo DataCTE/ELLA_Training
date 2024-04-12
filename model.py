@@ -216,3 +216,33 @@ class ELLA(nn.Module):
         )
 
         return encoder_hidden_states
+
+
+class TSC(torch.nn.Module):
+    def __init__(self, config, num_blocks=6):
+        super().__init__()
+        self.embed_dim = config.hidden_size
+        self.num_heads = config.num_attention_heads
+        self.num_latents = 64
+        self.latent_dim = self.embed_dim
+        
+        self.latents = torch.nn.Parameter(torch.randn(self.num_latents, self.latent_dim))
+        self.time_mlp = torch.nn.Sequential(
+            torch.nn.SiLU(),
+            torch.nn.Linear(self.embed_dim, self.latent_dim)
+        )
+        
+        self.blocks = torch.nn.ModuleList([
+            PerceiverAttentionBlock(self.embed_dim, self.num_heads, self.latent_dim)
+            for _ in range(num_blocks)
+        ])
+    
+    def forward(self, x, t):
+        t = self.time_mlp(t.float())
+        
+        latents = self.latents.unsqueeze(0).expand(x.shape[0], -1, -1)
+        
+        for block in self.blocks:
+            latents = block(x, latents, t)
+        
+        return latents
