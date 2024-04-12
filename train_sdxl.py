@@ -133,10 +133,10 @@ def train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path, epochs=
     torch.save(tsc.state_dict(), save_path)
      
 if __name__ == "__main__":
-    dataset_path = "/mnt/pool/training/datasets/mj-anime-mobio"
+    dataset_path = "path to your dataset"
     tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-xl")
     llm_model = T5EncoderModel.from_pretrained("google/flan-t5-xl").to("cuda")
-    sdxl_path = "/mnt/pool/models/ProteusMobius_diffusers"
+    sdxl_path = "path to diffusers format SDXL"
     save_path = "./tsc.pth"
     
     train_ella(dataset_path, tokenizer, llm_model, sdxl_path, save_path)
