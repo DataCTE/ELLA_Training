@@ -30,3 +30,4 @@ transformers
 transformers_stream_generator
 unicodedata2
 zhconv
+xformers
